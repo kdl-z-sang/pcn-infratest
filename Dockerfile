@@ -1,8 +1,5 @@
-# ECR用 Multi-stage build Dockerfile
-FROM openjdk:17-jdk-slim as builder
-
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# ROSA-compatible Multi-stage build Dockerfile
+FROM registry.access.redhat.com/ubi8/openjdk-17:1.17 as builder
 
 # Set working directory
 WORKDIR /workspace
@@ -23,15 +20,9 @@ COPY src src
 
 # Build the application
 RUN ./mvnw clean package -DskipTests
-
+ 
 # Runtime stage
-FROM openjdk:17-jre-slim
-
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-# Create a non-root user
-RUN groupadd -r spring && useradd -r -g spring spring
+FROM registry.access.redhat.com/ubi8/openjdk-17-runtime:1.17
 
 # Set working directory
 WORKDIR /app
@@ -45,16 +36,10 @@ RUN curl -L https://github.com/signalfx/splunk-otel-java/releases/download/v2.15
 # Set permissions for the agent and application
 RUN chmod -R go+r /app/splunk-otel-javaagent.jar
 
-# Change ownership to spring user
-RUN chown spring:spring app.jar splunk-otel-javaagent.jar
-
-# Switch to non-root user
-USER spring
-
 # Expose port
 EXPOSE 8080
 
-# Health check (内部チェックのためHTTP使用、外部アクセスはRouteでHTTPS化)
+# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
@@ -63,3 +48,4 @@ ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport"
 
 # Run the application with Splunk Java Agent
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -javaagent:./splunk-otel-javaagent.jar -jar app.jar"]
+ 
