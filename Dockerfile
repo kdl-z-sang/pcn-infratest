@@ -7,3 +7,5 @@ RUN echo 'package com.example.chatapp; import java.io.*; import java.net.*; publ
     jar cfe app.jar com.example.chatapp.SimpleServer *.class
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+#Replaced with simple dockerfile
