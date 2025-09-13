@@ -1,9 +1,6 @@
-FROM registry.access.redhat.com/ubi8/openjdk-17-runtime:1.17
+FROM registry.access.redhat.com/ubi8/openjdk-17:1.17
  
 WORKDIR /app
- 
-# Switch to root user temporarily to avoid permission issues
-USER root
  
 # Create a simple Java web server
 RUN echo 'package com.example.chatapp;' > SimpleServer.java && \
@@ -27,4 +24,5 @@ RUN javac SimpleServer.java && \
     jar cfe app.jar com.example.chatapp.SimpleServer *.class
  
 EXPOSE 8080
+ 
 ENTRYPOINT ["java", "-jar", "app.jar"]
