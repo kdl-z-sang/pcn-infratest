@@ -1,25 +1,23 @@
 # ROSA-compatible Multi-stage build Dockerfile
 FROM registry.access.redhat.com/ubi8/openjdk-17:1.17 as builder
 
+# Install Maven
+RUN microdnf install -y maven
+
 # Set working directory
 WORKDIR /workspace
 
-# Copy Maven wrapper and pom.xml
-COPY mvnw .
-COPY .mvn .mvn
+# Copy pom.xml first for better layer caching
 COPY pom.xml .
 
-# Make Maven wrapper executable
-RUN chmod +x ./mvnw
-
 # Download dependencies
-RUN ./mvnw dependency:go-offline -B
+RUN mvn dependency:go-offline -B
 
 # Copy source code
 COPY src src
 
 # Build the application
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
  
 # Runtime stage
 FROM registry.access.redhat.com/ubi8/openjdk-17-runtime:1.17
