@@ -1,10 +1,10 @@
 FROM registry.access.redhat.com/ubi8/openjdk-17:1.17
- 
+
 WORKDIR /app
- 
+
 # Create the package directory structure
 RUN mkdir -p com/example/chatapp
- 
+
 # Create the Java file in the correct package directory
 RUN echo 'package com.example.chatapp;' > com/example/chatapp/SimpleServer.java && \
     echo 'import java.io.*;' >> com/example/chatapp/SimpleServer.java && \
@@ -21,11 +21,11 @@ RUN echo 'package com.example.chatapp;' > com/example/chatapp/SimpleServer.java 
     echo '    }' >> com/example/chatapp/SimpleServer.java && \
     echo '  }' >> com/example/chatapp/SimpleServer.java && \
     echo '}' >> com/example/chatapp/SimpleServer.java
- 
+
 # Compile with correct classpath and create JAR
 RUN javac com/example/chatapp/SimpleServer.java && \
     jar cfe app.jar com.example.chatapp.SimpleServer com/example/chatapp/*.class
- 
+
 EXPOSE 8080
- 
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
